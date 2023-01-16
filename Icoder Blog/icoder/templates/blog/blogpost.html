@@ -1,0 +1,98 @@
+{% extends 'basic.html' %}
+{% block title%}Blog Post Page {% endblock %}
+{% block body %}
+{% load humanize %}
+{% load extras %}
+<div class="container my-3">
+  <div class="blog-post">
+    <h2 class="blog-post-title">{{post.title}}</h2>
+    <p class="blog-post-meta">{{post.timestamp}} by <a href="#">{{post.author}}</a>(<span>{{post.views}}</span>)</p>
+    <p>{{post.content|safe}}</p>
+    <hr>
+  </div>
+
+  <div class="container">
+    <h2>Comments({{comments.count}})</h2>
+    <div class="my-2">
+      {% if user.is_authenticated %}
+      <form action="blog/postcomment" method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label for="comment" class="comment">Post Comment</label>
+          <input type="text" class="form-control" id="comment" name="comment" aria-describedby="emailHelp">
+        </div>
+        <input type="hidden" name="postsno" value="{{post.sno}}">
+        <input type="hidden" name="parentSno" value="">
+        <button type="submit" class="btn btn-primary">Submit</button>
+
+      </form>
+      {% else %}
+      <h1><b><u></u>Please Login To Post A Comment</u></b></h1>
+      {% endif %}
+    </div>
+
+
+    {% for comment in comments %}
+    <div class="row">
+      <div class="col-md-1">
+        <img class="d-block w-100 p-2 mb-2 border rounded-circle" src="static\img\myuser.jpg">
+      </div>
+      <div class="col-md-11">
+        <b>{{comment.user.username}}</b>
+        <span class="bandge badge-secondary">
+          {{comment.timestamp|naturaltime}}
+        </span>
+
+        <div>{{comment.comment}}</div>
+        <div class="reply mx-0">
+          {% if user.is_authenticated %}
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+            data-bs-target="#replybox{{comment.sno}}" aria-expanded="false" aria-controls="replybox{{comment.sno}}">
+            Reply
+          </button>
+
+          <div class="collapse" id="replybox{{comment.sno}}">
+            <div class="card card-body">
+              <form action="blog/postcomment" method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                  <label for="comment" class="form-label">Post Reply</label>
+                  <input type="text" class="form-control" id="comment" name="comment" aria-describedby="emailHelp">
+                  <input type="hidden" name="parentSno" value="{{comment.sno}}">
+                </div>
+                <input type="hidden" name="postsno" value="{{post.sno}}">
+                <button type="submit" class="btn btn-primary">Submit</button>
+
+              </form>
+            </div>
+          </div>
+          {% else %}
+          
+          <button class="btn btn-primary" type="button" data-bs-toggle="collapse"
+            data-bs-target="#replybox{{comment.sno}}" aria-expanded="false" aria-controls="replybox{{comment.sno}}" disabled>
+            Login to reply
+          </button>
+          {% endif %}
+          <div class="replies my-2 ">
+            {% for reply in replyDict|get_val:comment.sno %}
+            <div class="row my-2">
+              <div class="col-md-1">
+                <img class="d-block w-100 p-2 mb-2 border rounded-circle" 
+                src="static\img\myuser.jpg">
+              </div>
+              <div class="col-md-11">
+            <b>{{reply.user.username}}</b> 
+            <span class="bandge bg-secondary">
+              {{reply.timestamp|naturaltime}}
+            </span>
+          <div>{{reply.comment}}></div>
+          </div>
+          </div>
+            {% endfor %}
+          </div>
+
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endblock %}
